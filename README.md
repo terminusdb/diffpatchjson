@@ -1,14 +1,8 @@
-# diffpatchjson
-Efficently diff and patch JSON
-
----
-description: >-
-  Introduction to JSON Diff and Patch (JSON-DP) with examples of the available
-  operations.
----
-
 # JSON Diff and Patch
 
+## Introduction to JSON Diff and Patch (JSON-DP) with examples of the available
+
+---
 JSON objects are a common way of representing data for software development. The serialization of JSON is simple and facilitates communication via networks and storage in databases. Almost all modern programming languages support JSON objects natively.
 
 When objects are modified in distributed systems, it is useful to compare versions of an object to see what has changed. This is where **diff** and **patch** come in.
