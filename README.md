@@ -1,7 +1,18 @@
 # JSON Diff and Patch
 ---
 
-## Introduction to JSON Diff and Patch (JSON-DP) with examples of the available operations
+### Introduction to JSON Diff and Patch (JSON-DP)
+---
+
+## Key topics
+
+[Use JSON-DP with a TerminusDB client](json-diff-and-patch.md#use-json-dp-with-a-terminusdb-client)
+
+[JSON-DP operations](json-diff-and-patch.md#json-dp-operations)
+
+[JSON-DP examples using curl](json-diff-and-patch.md#diff-examples-using-curl)
+
+## The uses of JSON-DP
 
 JSON objects are a common way of representing data for software development. The serialization of JSON is simple and facilitates communication via networks and storage in databases. Almost all modern programming languages support JSON objects natively.
 
@@ -15,9 +26,110 @@ A **diff** takes two JSON objects and presents any differences between them. Dif
 
 A **patch** applies a diff to two objects to obtain a new object with any differences highlighted. A patch is applied individually or in bulk to a patch endpoint that will apply the patch to the specified data product.
 
-## Diff and Patch Operations
+## Use JSON-DP with a TerminusDB client
 
-The available diff and patch operations:
+Use JSON-DP with a TerminusDB JavaScript or Python client to find and handle changes in TerminusDB schemas and documents, JSON schemas, and other document databases such as MongoDB. See [JSON-DP client tutorials](json-diff-and-patch.md#json-dp-client-tutorials) for use cases, including connectivity with MongoDB.
+
+### Prerequisites
+
+[Install TerminusDB JavaScript client](../readme/terminusx/install/install-javascript-client.md)
+
+[Install TerminusDB Python client](../readme/terminusx/install/install-python-client.md)
+
+### Get started
+
+Get started with the simple steps below.
+
+If using **TerminusX with Python**, connect to your TerminusX cloud instance first - see [Connect with WOQLClient](../readme/terminusx/quick-start/start-with-client.md#connect-with-woqlclient) for instructions if required. 
+
+1\. [Create an endpoint](json-diff-and-patch.md#create-an-endpoint)
+
+2\. [Apply a diff to obtain a patch](json-diff-and-patch.md#apply-a-diff-to-obtain-a-patch)
+
+3\. [Review the patch](json-diff-and-patch.md#review-the-patch)
+
+4\. [Apply the patch](json-diff-and-patch.md#apply-the-patch)
+
+#### Create an endpoint
+
+Create a client endpoint with `WOQLClient`.
+
+
+**JavaScript**
+```javascript
+const TerminusClient = require("@terminusdb/terminusdb-client");
+
+var client = new TerminusClient.WOQLClient("http://127.0.0.1:6363")
+```
+
+**Python**
+```python
+from terminusdb_client import WOQLClient
+
+client = WOQLClient("http://localhost:6363/")
+```
+
+#### Apply a diff to obtain a patch
+
+Get the difference/s between two hypothetical documents - `Doc1` and `Doc2`.
+
+**JavaScript**
+Use `getDiff`
+
+
+
+```javascript
+let result_patch = await client.getDiff(Doc1, Doc2)
+```
+
+
+**Python**
+Use`diff`
+
+
+
+```python
+result_patch = client.diff(Doc1, Doc2)
+```
+
+
+#### Review the patch
+
+Print the contents of a patch.
+
+**JavaScript**
+```javascript
+console.log(result_patch)
+```
+
+
+**Python**
+Example uses`pprint` (`from pprint import pprint`)
+
+
+
+```python
+pprint(result_patch.content)
+```
+
+#### Apply the patch
+
+Apply the patch to `Doc1`.
+
+**JavaScript**
+```javascript
+let after_patch = await client.patch(Doc1, result_patch);
+```
+
+
+**Python**
+```python
+after_patch = client.patch(Doc1, result_patch)
+```
+
+## JSON-DP operations &#x20;
+
+The available JSON-DP operations with some examples using `curl`.
 
 ### Copy Diff
 
@@ -56,7 +168,7 @@ The list diff requires swaps at a position. We use, `@copy`, `@swap` and `@keep`
 
 #### Copy List
 
-Copy the previous list from `From_Position` to \`To\_Position.
+Copy the previous list from `From_Position` to `To_Position`.
 
 ```jsx
 { "@op" : "CopyList",
@@ -77,7 +189,7 @@ Swap out the list starting from the current point from `Previous` to `Next`. Thi
 
 #### Patch List
 
-Patch the list starting from the current point with the patch list in "@patch". The patch must be less than or equal to the length of the list.
+Patch the list starting from the current point with the patch list in `"@patch"`. The patch must be less than or equal to the length of the list.
 
 ```jsx
 { "@op" : "PatchList",
@@ -129,7 +241,7 @@ A "Force Diff" will set the value of a location regardless of the current read-s
 
 ### Table Diff
 
-A Table diff specifies the differences and similarities between two tables. These tables _need not_ have the same dimensions. In order to describe these differences we use a `ModifyTable` patch. The `ModifyTable` patch is comprised of `copies`, `deletes`, `inserts` and `moves`.
+A Table diff specifies the differences and similarities between the two tables. These tables _need not_ have the same dimensions. In order to describe these differences, we use a `ModifyTable` patch. The `ModifyTable` patch is comprised of `copies`, `deletes`, `inserts` and `moves`.
 
 `copies` give the sections of the table which can be copied verbatim. `deletes` gives all segments which are to be removed from the original. `inserts` gives all segments which are to be inserted into the new table.
 
@@ -200,17 +312,19 @@ Which would result in the following patch:
 { "name" : { "@op" : "SwapValue", "@before" : "Jane", "@after": "Janine" }}
 ```
 
-Some examples using curl are as follows:
+#### Diff examples using curl
 
 ```shell
-$ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/diff' -d @-
-  { "before" : [{ "asdf" : "foo"}], "after" : [{ "asdf" : "bar"}]}
-[ {"asdf": {"@after":"bar", "@before":"foo", "@op":"SwapValue"}} ]
+$ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/diff' -d \
+  '{ "before" : [{ "asdf" : "foo"}], "after" : [{ "asdf" : "bar"}]}'
+# Output: [ {"asdf": {"@after":"bar", "@before":"foo", "@op":"SwapValue"}} ]
 ```
 
 ```bash
-$ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/diff' -d @-
-{ "before" : [0,1,2], "after" : [0,1,2,3]}
+$ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/diff' -d \
+  '{ "before" : [0,1,2], "after" : [0,1,2,3]}'
+
+# Output:
 {
   "@op":"CopyList",
   "@rest": {
@@ -224,8 +338,10 @@ $ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/di
 ```
 
 ```bash
-$ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/diff' -d @-
-{ "before" : { "asdf" : { "fdsa" : "quux"}}, "after" : { "asdf" : { "fdsa" : "quuz" }}}
+$ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/diff' -d \
+  '{ "before" : { "asdf" : { "fdsa" : "quux"}}, "after" : { "asdf" : { "fdsa" : "quuz" }}}'
+
+# Output:
 {
   "asdf": {"fdsa": {"@after":"quuz", "@before":"quux", "@op":"SwapValue"}}
 }
@@ -246,18 +362,18 @@ Resulting in the following document:
 { "@id" : "Person/Jane", "@type" : "bahPerson", "name" : "Janine"}
 ```
 
-Some examples using curl are as follows:
+#### Patch examples using curl
 
 ```shell
-$ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/patch' -d @-
-{ "before" : { "alpha" : 1, "asdf" : { "fdsa" : "quux"}}, "patch" : {
-  "asdf": {"fdsa": {"@after":"quuz", "@before":"quux", "@op":"SwapValue"}}
-}}
-{"alpha":1, "asdf": {"fdsa":"quuz"}}
+$ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/patch' -d \
+   '{ "before" : { "alpha" : 1, "asdf" : { "fdsa" : "quux"}}, "patch" : {
+      "asdf": {"fdsa": {"@after":"quuz", "@before":"quux", "@op":"SwapValue"}}
+}}'
+# Output: {"alpha":1, "asdf": {"fdsa":"quuz"}}
 ```
 
 ```bash
-$ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/patch' -d @-
+$ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/patch' -d '
 { "before" : [0,1,2], "patch" : {
   "@op":"CopyList",
   "@rest": {
@@ -267,12 +383,20 @@ $ curl -X POST -H "Content-Type: application/json" 'http://127.0.0.1:6363/api/pa
     "@rest": {"@op":"KeepList"}
   },
   "@to":3
-}}
-[0, 1, 2, 3 ]
+}}'
+#Output: [0, 1, 2, 3 ]
 ```
 
 ## See Also
 
-### Diff and Patch Client API
+### JSON-DP client tutorials&#x20;
 
-Use diff and patch with a [JavaScript or Python Client](https://github.com/terminusdb/terminusdb-tutorials/tree/diff\_patch/diff\_patch).
+Tutorials for using JSON-DP with a TerminusDB [JavaScript or Python client](https://github.com/terminusdb/terminusdb-tutorials/tree/diff\_patch/diff\_patch), including the use of JSON-DiffPatch with MongoDB.
+
+### JSON-DP JavaScript client reference guide
+
+JSON-DP functions in the [JavaScript client reference guide](https://terminusdb.github.io/terminusdb-client-js/#/api/woqlClient.js?id=getdiff).
+
+### JSON-DP Python client reference guide
+
+JSON-DP functions in the [Python client reference guide](https://terminusdb.github.io/terminusdb-client-python/woqlClient.html?highlight=diff#terminusdb\_client.WOQLClient.diff).
