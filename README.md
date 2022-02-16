@@ -1,4 +1,4 @@
-# JSON Diff and Patch
+# [JSON Diff and Patch](https://terminusdb.com/docs/index/json-diff-and-patch)
 ---
 
 ### Introduction to JSON Diff and Patch (JSON-DP)
